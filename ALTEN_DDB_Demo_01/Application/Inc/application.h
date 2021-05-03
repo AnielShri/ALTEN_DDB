@@ -11,26 +11,43 @@
 #include "main.h"
 
 //---------------------------------------------------------------------------//
+//	constants
+//---------------------------------------------------------------------------//
+
+#define PWM_DUTY_MAX		2500
+#define PWM_DUTY_NOMINAL	(PWM_DUTY_MAX / 120 * 100)
+
+//---------------------------------------------------------------------------//
 //	types
 //---------------------------------------------------------------------------//
 
-typedef enum
+typedef struct
 {
-	FLAG_SECONDS_TIMER,
-	APP_FLAGS_MAX
-}AppFlagsEnum;
+	uint8_t ui_timer;
+	uint8_t start;
+	uint8_t	stop;
+}AppFlagsStruct;
 
 typedef struct
 {
-	uint32_t	up_counter;
+	uint32_t up_counter;
 }AppMonitorStruct;
+
+typedef struct
+{
+	uint8_t	speed;
+	uint8_t	encoder;
+	uint8_t	openloop;
+}AppConfigStruct;
 
 
 //---------------------------------------------------------------------------//
 //	globals
 //---------------------------------------------------------------------------//
 
-uint8_t 			app_flags[APP_FLAGS_MAX];
+//uint8_t 			app_flags[APP_FLAGS_MAX];
+AppFlagsStruct		app_flags;
+AppConfigStruct		app_config;
 AppMonitorStruct	app_data;
 
 

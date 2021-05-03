@@ -19,7 +19,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     switch((uint32_t)htim->Instance)
     {
         case (uint32_t)TIM6:
-        	app_flags[FLAG_SECONDS_TIMER] = 1;
+//        	app_flags[FLAG_SECONDS_TIMER] = 1;
+        	app_flags.ui_timer = 1;
             break;
     }
 }

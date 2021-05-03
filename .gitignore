@@ -55,3 +55,7 @@ dkms.conf
 Debug/
 .settings/
 L476_Experiments/
+DDB_demo_01/
+GUI/
+Examples/
+Datasheets/
