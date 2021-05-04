@@ -31,7 +31,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
         case (uint32_t)TIM6:
         {
-        	app_flags.ui_timer = 1;
+        	app_flags.ui_isr = 1;
             break;
         }
         case (uint32_t)TIM7:
@@ -43,6 +43,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         		app_flags.stop = 1;
         	}
 
+        	break;
+        }
+        case (uint32_t)TIM16:
+        {
+        	app_flags.pid_isr = 1;
         	break;
         }
     }

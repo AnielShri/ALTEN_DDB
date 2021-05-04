@@ -10,14 +10,16 @@
 //---------------------------------------------------------------------------//
 //	variables
 //---------------------------------------------------------------------------//
+extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
-extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim16;
 
 // alias
+#define htim_pwm	htim3
 #define htim_ui		htim6
 #define htim_ticks	htim7
-#define htim_pwm	htim3
+#define htim_pid	htim16
 
 
 //---------------------------------------------------------------------------//
@@ -29,7 +31,7 @@ void App_Initialize()
 	// clear all flags
 	app_flags.start = 0;
 	app_flags.stop = 0;
-	app_flags.ui_timer = 0;
+	app_flags.ui_isr = 0;
 	app_flags.encoder_isr = 0;
 
 	// initialize app_data to zero
@@ -81,14 +83,47 @@ void App_Loop()
 		app_flags.encoder_isr = 0;
 	}
 
+	if (app_flags.pid_isr == 1)
+	{
+		const float dt = 5e-3;
+		const float Kp = 1;
+		const float Ki = 2 * dt;
+		const float Kd = 0.01 / dt;
+		const float max_speed = 120;
+
+		float error = (float)app_data.set_speed - (float)app_data.true_speed;
+
+		app_data.sum_error += Ki * error;
+		if (app_data.sum_error >= max_speed) app_data.sum_error = 100;
+		else if (app_data.sum_error <= 0) app_data.sum_error = 0;
+
+		float rate_error = (float)error - (float)app_data.prev_error;
+
+		float duty_cycle = (Kp * error) + app_data.sum_error + (Kd * rate_error);
+
+
+		if (duty_cycle >= max_speed) duty_cycle = max_speed;
+		if (duty_cycle <= 0) duty_cycle = 0;
+		duty_cycle = duty_cycle / max_speed;
+
+		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_MAX * duty_cycle);
+
+		app_data.prev_error = error;
+
+		app_flags.pid_isr = 0;
+	}
+
 	if (app_flags.start == 1)
 	{
 		app_data.tick_count = 0;
 		app_data.true_speed = 1;
+		app_data.prev_error = 0;
+		app_data.sum_error = 0;
 		HAL_TIM_Base_Start_IT(&htim_ticks);
 
 		app_config.enabled = 1;
-		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_NOMINAL);
+//		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_NOMINAL);
+		HAL_TIM_Base_Start_IT(&htim_pid);
 
 		app_flags.start = 0;
 	}
@@ -98,19 +133,20 @@ void App_Loop()
 		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, 0);
 
 		HAL_TIM_Base_Stop_IT(&htim_ticks);
+		HAL_TIM_Base_Stop_IT(&htim_pid);
 
 		app_flags.stop = 0;
 	}
-	else if (app_flags.ui_timer == 1)
+	else if (app_flags.ui_isr == 1)
 	{
 		HAL_GPIO_TogglePin(LD_HB_GPIO_Port, LD_HB_Pin);
 
-		if (app_config.enabled == 1)
-		{
-			uint32_t duty_cycle = PWM_DUTY_NOMINAL * (app_data.set_speed / 100.0);
-			__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, duty_cycle);
-		}
+//		if (app_config.enabled == 1)
+//		{
+//			uint32_t duty_cycle = PWM_DUTY_NOMINAL * (app_data.set_speed / 100.0);
+//			__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, duty_cycle);
+//		}
 
-		app_flags.ui_timer = 0;
+		app_flags.ui_isr = 0;
 	}
 }

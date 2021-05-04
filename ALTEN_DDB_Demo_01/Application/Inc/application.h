@@ -30,8 +30,9 @@ typedef enum
 
 typedef struct
 {
-	uint8_t ui_timer;
+	uint8_t ui_isr;
 	uint8_t	encoder_isr;
+	uint8_t pid_isr;
 	uint8_t start;
 	uint8_t	stop;
 }AppFlagsStruct;
@@ -41,6 +42,8 @@ typedef struct
 	uint32_t true_speed;
 	uint32_t set_speed;
 	uint32_t tick_count;
+	float 	 prev_error;
+	float	 sum_error;
 }AppMonitorStruct;
 
 typedef struct
