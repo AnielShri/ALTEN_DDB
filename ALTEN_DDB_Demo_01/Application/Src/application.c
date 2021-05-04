@@ -39,6 +39,7 @@ void App_Initialize()
 
 	// set default config
 	app_config.encoder = CONFIG_ENCODER_FAST;
+	app_data.set_speed = 100;
 
 	// init peripherals
 	HAL_TIM_Base_Start_IT(&htim_ui);
@@ -86,12 +87,14 @@ void App_Loop()
 		app_data.true_speed = 1;
 		HAL_TIM_Base_Start_IT(&htim_ticks);
 
+		app_config.enabled = 1;
 		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_NOMINAL);
 
 		app_flags.start = 0;
 	}
 	else if (app_flags.stop == 1)
 	{
+		app_config.enabled = 0;
 		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, 0);
 
 		HAL_TIM_Base_Stop_IT(&htim_ticks);
@@ -101,6 +104,12 @@ void App_Loop()
 	else if (app_flags.ui_timer == 1)
 	{
 		HAL_GPIO_TogglePin(LD_HB_GPIO_Port, LD_HB_Pin);
+
+		if (app_config.enabled == 1)
+		{
+			uint32_t duty_cycle = PWM_DUTY_NOMINAL * (app_data.set_speed / 100.0);
+			__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, duty_cycle);
+		}
 
 		app_flags.ui_timer = 0;
 	}

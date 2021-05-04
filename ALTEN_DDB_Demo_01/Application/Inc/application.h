@@ -14,7 +14,7 @@
 //	constants
 //---------------------------------------------------------------------------//
 
-#define PWM_DUTY_MAX		2500
+#define PWM_DUTY_MAX		(2500 - 1)
 #define PWM_DUTY_NOMINAL	(PWM_DUTY_MAX / 120 * 100)
 
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ typedef struct
 
 typedef struct
 {
-	uint8_t		speed;
+	uint8_t		enabled;
 	uint8_t		encoder;
 	uint8_t		controller;
 }AppConfigStruct;
