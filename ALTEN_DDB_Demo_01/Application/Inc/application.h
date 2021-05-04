@@ -21,6 +21,13 @@
 //	types
 //---------------------------------------------------------------------------//
 
+typedef enum
+{
+	CONFIG_ENCODER_HZ,
+	CONFIG_ENCODER_FAST,
+	CONFIG_ENCODER_FILTER
+}AppConfigEncoderEnum;
+
 typedef struct
 {
 	uint8_t ui_timer;
@@ -40,7 +47,7 @@ typedef struct
 {
 	uint8_t		speed;
 	uint8_t		encoder;
-	uint8_t		openloop;
+	uint8_t		controller;
 }AppConfigStruct;
 
 

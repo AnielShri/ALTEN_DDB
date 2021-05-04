@@ -37,6 +37,9 @@ void App_Initialize()
 	app_data.set_speed = 0;
 	app_data.tick_count = 0;
 
+	// set default config
+	app_config.encoder = CONFIG_ENCODER_FAST;
+
 	// init peripherals
 	HAL_TIM_Base_Start_IT(&htim_ui);
 	HAL_GPIO_TogglePin(LD_HB_GPIO_Port, LD_HB_Pin);
@@ -58,10 +61,21 @@ void App_Loop()
 		uint32_t speed = 0;
 		if (delta_ticks >= 5) speed = 15.75e3 / delta_ticks;
 
-		uint32_t old_speed = app_data.true_speed;
-		float k = 0.35;
-		uint32_t ema_speed = (k * speed) + ((1 - k) * old_speed);
-		app_data.true_speed = ema_speed;
+		switch (app_config.encoder) {
+			case CONFIG_ENCODER_FAST:
+			{
+				app_data.true_speed = speed;
+				break;
+			}
+			case CONFIG_ENCODER_FILTER:
+			{
+				uint32_t old_speed = app_data.true_speed;
+				const float k = 0.35;
+				uint32_t ema_speed = (k * speed) + ((1 - k) * old_speed);
+				app_data.true_speed = ema_speed;
+				break;
+			}
+		}
 
 		app_flags.encoder_isr = 0;
 	}
