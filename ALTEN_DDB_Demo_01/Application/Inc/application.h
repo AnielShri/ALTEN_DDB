@@ -24,20 +24,23 @@
 typedef struct
 {
 	uint8_t ui_timer;
+	uint8_t	encoder_isr;
 	uint8_t start;
 	uint8_t	stop;
 }AppFlagsStruct;
 
 typedef struct
 {
-	uint32_t up_counter;
+	uint32_t true_speed;
+	uint32_t set_speed;
+	uint32_t tick_count;
 }AppMonitorStruct;
 
 typedef struct
 {
-	uint8_t	speed;
-	uint8_t	encoder;
-	uint8_t	openloop;
+	uint8_t		speed;
+	uint8_t		encoder;
+	uint8_t		openloop;
 }AppConfigStruct;
 
 
