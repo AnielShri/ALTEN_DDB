@@ -28,6 +28,13 @@ typedef enum
 	CONFIG_ENCODER_FILTER
 }AppConfigEncoderEnum;
 
+typedef enum
+{
+	CONFIG_CONTROLLER_OPENLOOP,
+	CONFIG_CONTROLLER_CLOSEDLOOP,
+	CONFIG_CONTROLLER_HIBRID
+}AppConfigControllerEnum;
+
 typedef struct
 {
 	uint8_t ui_isr;

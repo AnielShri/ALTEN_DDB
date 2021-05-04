@@ -54,8 +54,6 @@ void App_Initialize()
 
 void App_Loop()
 {
-//	__HAL_TIM_SET_AUTORELOAD()
-
 	if (app_flags.encoder_isr == 1)
 	{
 		uint32_t delta_ticks = app_data.tick_count;
@@ -85,32 +83,48 @@ void App_Loop()
 
 	if (app_flags.pid_isr == 1)
 	{
-		const float dt = 5e-3;
-		const float Kp = 1;
-		const float Ki = 2 * dt;
-		const float Kd = 0.01 / dt;
-		const float max_speed = 120;
+		if (app_config.controller == CONFIG_CONTROLLER_OPENLOOP)
+		{
+			const float max_speed = 120;
+			float open_loop = app_data.set_speed / max_speed;
+			__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_MAX * open_loop);
+		}
+		else
+		{
+			// do PID
+			const float dt = 5e-3;
+			const float Kp = 1;
+			const float Ki = 2 * dt;
+			const float Kd = 0.01 / dt;
+			const float max_speed = 120;
 
-		float error = (float)app_data.set_speed - (float)app_data.true_speed;
+			float error = (float)app_data.set_speed - (float)app_data.true_speed;
 
-		app_data.sum_error += Ki * error;
-		if (app_data.sum_error >= max_speed) app_data.sum_error = 100;
-		else if (app_data.sum_error <= 0) app_data.sum_error = 0;
+			app_data.sum_error += Ki * error;
+			if (app_data.sum_error >= max_speed) app_data.sum_error = 100;
+			else if (app_data.sum_error <= -1*max_speed) app_data.sum_error = -1*max_speed;
 
-		float rate_error = (float)error - (float)app_data.prev_error;
+			float rate_error = (float)error - (float)app_data.prev_error;
 
-		float duty_cycle = (Kp * error) + app_data.sum_error + (Kd * rate_error);
+			float duty_cycle = (Kp * error) + app_data.sum_error + (Kd * rate_error);
+
+			if (app_config.controller == CONFIG_CONTROLLER_HIBRID)
+			{
+				duty_cycle += app_data.set_speed;
+			}
+
+			if (duty_cycle >= max_speed) duty_cycle = max_speed;
+			if (duty_cycle <= 0) duty_cycle = 0;
+			duty_cycle = duty_cycle / max_speed;
 
 
-		if (duty_cycle >= max_speed) duty_cycle = max_speed;
-		if (duty_cycle <= 0) duty_cycle = 0;
-		duty_cycle = duty_cycle / max_speed;
+			__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_MAX * duty_cycle);
 
-		__HAL_TIM_SET_COMPARE(&htim_pwm, TIM_CHANNEL_1, PWM_DUTY_MAX * duty_cycle);
-
-		app_data.prev_error = error;
+			app_data.prev_error = error;
+		}
 
 		app_flags.pid_isr = 0;
+
 	}
 
 	if (app_flags.start == 1)
